@@ -1,8 +1,14 @@
 import { useEffect, useState } from "react" 
 import Square from "./Square"
 
+type Scores = {
+  [key: string]: number
+}
+
 // status initial of the x or o 
 let initial_game_state = ["", "", "", "", "", "", "", "", ""]
+// initial score of the game
+let initial_score: Scores = {X:0, O: 0}
 // set de playing
 let winning_combos = [
   [0, 1, 2], 
@@ -20,10 +26,22 @@ function App() {
   
   const [gameStatus, setGameStatus] = useState(initial_game_state)
   const [currentPlayer, setCurrentPlayer] = useState("X")
+  const [scores, setScores] = useState(initial_score)
 
   useEffect(() => {
+    let storedScores = localStorage.getItem("scores")
+      if(storedScores){
+        setScores(JSON.parse(storedScores))
+      }
+  }, [])
+
+  useEffect(() => {
+    if(gameStatus === initial_game_state){
+      return
+    }
     checkForWinner()
   }, [gameStatus])
+
 
   // reset the board after winner
   let resetBoard = () => setGameStatus(initial_game_state)
@@ -31,6 +49,14 @@ function App() {
   // show alert for the winner
   let handleWin = () => {
     window.alert(`Congrats player ${currentPlayer}! you are the winner`)
+    
+    let newPlayerScore = scores[currentPlayer] + 1
+    let newScores = {...scores}
+    newScores[currentPlayer] = newPlayerScore
+    setScores(newScores)
+
+    localStorage.setItem("scores", JSON.stringify(newScores));
+
     resetBoard()
   }
   
@@ -73,6 +99,7 @@ function App() {
       changePlayer() //
   }
 
+  //change ternario = ? :
   let changePlayer = () => {
     setCurrentPlayer(currentPlayer === "X" ? " O" : "X")
   }
@@ -91,8 +118,8 @@ function App() {
   }
 
   return (
-    <div className='h-full p-8 text-slate-800 bg-gradient-to-r from-cyan-500 to blue-500'>
-      <h1 className='text-center text-xl mb-4 font-display text-white'>Tic tac toe game page</h1>
+    <div className='h-screen p-8 text-slate-800 bg-red-300'>
+      <h1 className='text-center text-5xl pb-2.5 mb-4 font-display italic text-orange-200 hover:text-sky-400'>Tic tac toe game page</h1>
       <div>
         <div className="grid grid-cols-3 gap-3 mx-auto w-96">{gameStatus.map((player, index) => (
         <Square 
@@ -101,7 +128,21 @@ function App() {
         {... { index, player }}/>
         ))}
         </div>
-        <div>Scores Go Here</div>
+
+        <div className="mx-auto w-96 text-2xl text-serif pr-2.5">
+          
+          <p className="text-white mt-5">Next Player: 
+          <span>{currentPlayer}</span>
+          </p>
+          <p className="text-white mt-5">Next X wins: 
+          <span>{scores["X"]}</span>
+          </p>
+          <p className="text-white mt-5">Next O wins: 
+          <span>{scores["O"]}</span>
+          </p>
+
+        </div>
+
       </div>
     </div>
   )
